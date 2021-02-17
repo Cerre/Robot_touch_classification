@@ -9,6 +9,7 @@ from sklearn import metrics
 from sklearn.metrics import confusion_matrix
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
 
 
 
@@ -55,22 +56,34 @@ def normalize_data(x_data):
 def train(x_data, y_data):
     weight = {3:4}#, 4:2,9:2} # Adds importance to action 3. Improved performance.
     clf = svm.SVC(class_weight= weight)
+    clf2 = LogisticRegression(random_state=0)
     accuracies = []
+    accuracies2 = []
     confusion_matrices = []
-    N = 200
+    confusion_matrices2 = []
+    N = 25
     for k in range(N):
         x_train, x_test, y_train, y_test = train_test_split(x_data, y_data, test_size=0.15, stratify = y_data)
 
-
         clf.fit(x_train, y_train)
+        clf2.fit(x_train, y_train)
+
         y_pred = clf.predict(x_test)
+        y_pred2 = clf2.predict(x_test)
 
         accuracy = metrics.accuracy_score(y_test, y_pred)
+        accuracy2 = metrics.accuracy_score(y_test, y_pred2)
+
         accuracies.append(accuracy)
+        accuracies2.append(accuracy2)
+
         c_matrix = confusion_matrix(y_test, y_pred)
+        c_matrix2 = confusion_matrix(y_test, y_pred2)
         confusion_matrices.append(c_matrix)
-    print("\nAverage accuracy after " + str(N) +  " runs:",np.mean(accuracies))
-    return accuracies, confusion_matrices
+        confusion_matrices2.append(c_matrix2)
+    print("\nAverage accuracy after " + str(N) +  " runs with SVM:",np.mean(accuracies))
+    print("\nAverage accuracy after " + str(N) +  " runs with LogRegression:",np.mean(accuracies2))
+    return accuracies, accuracies2, confusion_matrices, confusion_matrices2
 
 
 def read_data():
@@ -121,20 +134,20 @@ def remove_data(nbr, amount, x_data, y_data):
     return x_data, y_data
 
 def run(x_data, y_data):
-    accuracies, confusion_matrices = train(x_data, y_data)
+    accuracies, accuracies2, confusion_matrices, confusion_matrices2 = train(x_data, y_data)
     val = np.min(accuracies)
     i = np.argmin(accuracies)
     print("Lowest accuracy: " + str(val))
     print('\n')
     print(confusion_matrices[i])
-    return accuracies, confusion_matrices
+    return accuracies, accuracies2, confusion_matrices, confusion_matrices2
 
 def main():
     x_data, y_data = read_data()
     x_data, y_data = remove_zero_data(x_data, y_data)
     # x_data, y_data = cleanup_data(x_data, y_data)
-    remove_data(9, 60, x_data, y_data)
-    remove_data(4, 50, x_data, y_data)
+    # x_data, y_data = remove_data(9, 60, x_data, y_data)
+    # x_data, y_data = remove_data(4, 50, x_data, y_data)
     # plot_distribution(y_data)
     x_data = normalize_data(x_data)
         # visual_data_example(i, x_data, y_data)
@@ -142,7 +155,7 @@ def main():
     # x_data, y_data = remove_action(9, x_data, y_data)
     # x_data, y_data = remove_action(0, x_data, y_data)
     # x_data, y_data = remove_action(4, x_data, y_data)
-    accuracies, confusion_matrices = run(x_data, y_data)
+    accuracies, accuracies2, confusion_matrices, confusion_matrices2 = run(x_data, y_data)
     
 
     
